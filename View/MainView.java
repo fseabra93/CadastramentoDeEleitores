@@ -9,6 +9,7 @@ import View.MainView;
 
 import Entity.Eleitor;
 import Entity.Pessoa;
+import Entity.Endereco;
 import Service.EleitorService;
 import Service.PessoaService;
 import java.util.List;
@@ -78,9 +79,8 @@ public class MainView implements View {
     }
 
     private void cadastrarEleitor() {
-        System.out.println("Entrou no módulo Cadastrar Eleitor");
-        System.out.println("Pronto para inserir os dados do próximo eleitor:");
-        System.out.println("Digite a data de nascimento no formato dd/mm/aaaa:");
+        System.out.println("\nEntrou no módulo Cadastrar Eleitor");
+        System.out.println("Digite a data de nascimento do próximo eleitor no formato dd/mm/aaaa:");
         String dn = scanner.nextLine();
         //corrigir se a pessoa não digitar um 0 no início dos dias e/ou dos meses 1 a 9
         List<Character> listaCharDN = PessoaService.consertarInsercaoData(dn);
@@ -122,21 +122,47 @@ public class MainView implements View {
                     System.out.println("O CPF fornecido é inválido.\n");
                     startView();
                 } else {
+                    System.out.println("Cadastrar endereço de "+nome);
+                    System.out.print("Rua: ");
+                    String rua_digitada = scanner.nextLine();
+                    System.out.print("Número: ");
+                    String num_digitado = scanner.nextLine();
+                    System.out.print("Bairro: ");
+                    String bairro_digitado = scanner.nextLine();
+                    System.out.print("Cidade (Natal, Macaíba ou Parnamirim): ");
+                    String cidade_digitada = scanner.nextLine();
                     
                     //String sobrenome = scanner.nextLine();
-                    System.out.print("Zona Eleitoral: ");
-                    int zonaEleitoral = scanner.nextInt();
-                    System.out.print("Seção Eleitoral: ");
-                    int secaoEleitoral = scanner.nextInt();
-                    scanner.nextLine(); // consumir nova linha
-                    System.out.print("Título Eleitoral: ");
-                    String tituloEleitoral = scanner.nextLine();
-
+                    String tituloEleitoral = EleitorService.geradorDeTitulo();
+                    int secaoEleitoral = EleitorService.geradorDeSecao();
+                    String cidade_para_selecionar_zona = EleitorService.converterParaMinusculasSemAcento(cidade_digitada);
+                    int zonaEleitoral = EleitorService.selecionaZona(cidade_para_selecionar_zona);
+                    
+                    //padronizar cidade para inserir no cadastro
+                    String cidade_para_cadastrar = EleitorService.padronizaCidade(cidade_para_selecionar_zona);
+                    
+                    
+                    System.out.println("Foi gerado para " + nome + ":" +
+                            "\nTítulo Eleitoral: " + tituloEleitoral +
+                            "\nSeção: " + secaoEleitoral +
+                            "\nZona: " + zonaEleitoral);
+                    
+                    //inserir os dados fornecidos
+                    Endereco endereco = new Endereco();
                     Eleitor eleitor = new Eleitor();
                     Pessoa pessoa = new Pessoa();
+                    
+                    endereco.setRua(rua_digitada);
+                    endereco.setNumero_compl(num_digitado);
+                    endereco.setBairro(bairro_digitado);
+                    endereco.setCidade(cidade_para_cadastrar);
+                    endereco.setEstado("RN");
+                    
                     pessoa.setNome(nome);
                     pessoa.setSobrenome(sobrenome);
                     pessoa.setCpf(cpf_reconstruido);
+                    pessoa.setEndereco(endereco);
+                              
                     eleitor.setPessoa(pessoa);
                     eleitor.setZonaEleitoral(zonaEleitoral);
                     eleitor.setSecaoEleitoral(secaoEleitoral);

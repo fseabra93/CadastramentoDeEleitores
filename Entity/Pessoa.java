@@ -8,10 +8,19 @@ package Entity;
  *
  * @author flaviorgs
  */
-public class Pessoa extends Entity{
+public class Pessoa extends Endereco{
     private String nome;
     private String cpf;
     private String sobrenome;
+    public Endereco endereco;
+
+    public Endereco getEndereco() {
+        return endereco;
+    }
+
+    public void setEndereco(Endereco endereco) {
+        this.endereco = endereco;
+    }
 
     // Getters e setters
     public String getNome() {
