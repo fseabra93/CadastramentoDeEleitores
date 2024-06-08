@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Database;
 
 import Entity.Entity;
@@ -33,23 +29,42 @@ public class Database {
     }
 
     public <T extends Entity> void save(Class<T> clazz, T entity) {
-        getTable(clazz).save(entity);
+        DatabaseTableI<T> table = getTable(clazz);
+        if (table == null) {
+            table = new DatabaseTable<>();
+            addTable(clazz, table);
+        }
+        table.save(entity);
     }
 
     public <T extends Entity> T findById(Class<T> clazz, int id) {
-        return getTable(clazz).findById(id);
+        DatabaseTableI<T> table = getTable(clazz);
+        if (table == null) {
+            return null;
+        }
+        return table.findById(id);
     }
 
     public <T extends Entity> List<T> findAll(Class<T> clazz) {
-        return getTable(clazz).findAll();
+        DatabaseTableI<T> table = getTable(clazz);
+        if (table == null) {
+            return new ArrayList<>();
+        }
+        return table.findAll();
     }
 
     public <T extends Entity> void update(Class<T> clazz, T entity) {
-        getTable(clazz).update(entity);
+        DatabaseTableI<T> table = getTable(clazz);
+        if (table != null) {
+            table.update(entity);
+        }
     }
 
     public <T extends Entity> void delete(Class<T> clazz, int id) {
-        getTable(clazz).delete(id);
+        DatabaseTableI<T> table = getTable(clazz);
+        if (table != null) {
+            table.delete(id);
+        }
     }
 
     public static class DatabaseTable<T extends Entity> implements DatabaseTableI<T> {
