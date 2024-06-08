@@ -8,8 +8,9 @@ package Entity;
  *
  * @author flaviorgs
  */
-public class Pessoa {
+public class Pessoa extends Entity{
     private String nome;
+    private String cpf;
     private String sobrenome;
 
     // Getters e setters
@@ -28,4 +29,14 @@ public class Pessoa {
     public void setSobrenome(String sobrenome) {
         this.sobrenome = sobrenome;
     }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+    
+    
 }

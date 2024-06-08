@@ -3,14 +3,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package View;
+import View.MainView;
 
 
 
 import Entity.Eleitor;
 import Entity.Pessoa;
 import Service.EleitorService;
+import Service.PessoaService;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 
 /**
@@ -75,29 +78,77 @@ public class MainView implements View {
     }
 
     private void cadastrarEleitor() {
-        System.out.print("Nome: ");
-        String nome = scanner.nextLine();
-        System.out.print("Sobrenome: ");
-        String sobrenome = scanner.nextLine();
-        System.out.print("Zona Eleitoral: ");
-        int zonaEleitoral = scanner.nextInt();
-        System.out.print("Seção Eleitoral: ");
-        int secaoEleitoral = scanner.nextInt();
-        scanner.nextLine(); // consumir nova linha
-        System.out.print("Título Eleitoral: ");
-        String tituloEleitoral = scanner.nextLine();
+        System.out.println("Entrou no módulo Cadastrar Eleitor");
+        System.out.println("Pronto para inserir os dados do próximo eleitor:");
+        System.out.println("Digite a data de nascimento no formato dd/mm/aaaa:");
+        String dn = scanner.nextLine();
+        //corrigir se a pessoa não digitar um 0 no início dos dias e/ou dos meses 1 a 9
+        List<Character> listaCharDN = PessoaService.consertarInsercaoData(dn);
+        dn = listaCharDN.stream()
+                .map(String::valueOf)
+              .collect(Collectors.joining());
+        
+        int idade_calc = PessoaService.checarIdade(dn);
+        
+        //Se a pessoa tiver menos de 16 anos não pode ser cadastrada
+        if (idade_calc < 16){
+                System.out.println("Pessoa com idade abaixo do limite mínimo para votar.\n");
+                    startView();
+            } else {
+                System.out.print("Nome Completo: ");
+                String nome = scanner.nextLine();
 
-        Eleitor eleitor = new Eleitor();
-        Pessoa pessoa = new Pessoa();
-        pessoa.setNome(nome);
-        pessoa.setSobrenome(sobrenome);
-        eleitor.setPessoa(pessoa);
-        eleitor.setZonaEleitoral(zonaEleitoral);
-        eleitor.setSecaoEleitoral(secaoEleitoral);
-        eleitor.setTituloEleitoral(tituloEleitoral);
+                //pega automaticamente o sobrenome do nome completo digitado apenas para efeito de busca futura
+                String sobrenome = PessoaService.getSobrenome(nome);
+                
+                System.out.print("Digite o CPF de " + nome + ": ");
+                String cpf_digitado = scanner.nextLine();
 
-        eleitorService.cadastrarEleitor(eleitor);
-        System.out.println("Eleitor cadastrado com sucesso!");
+                
+                //Se a pessoa esquecer de digitar algum dígito do CPF inserir zeros pra não quebrar o programa
+                if (cpf_digitado.length() < 11){
+                    int tam = cpf_digitado.length();
+                    for (int i = tam; i < 11; i++){
+                        cpf_digitado = cpf_digitado + "0";
+                    }
+                }
+                //Separa o CPF em uma lista de char para testar validade
+                List<Character> elementos_CPF = PessoaService.padronizaCPF(cpf_digitado);
+                //Reconstrói CPF no formato correto para inserir no cadastro caso passe no teste de validade
+                String cpf_reconstruido = PessoaService.reconstroiCPF(elementos_CPF);
+                //Testa se CPF é válido
+                boolean cpf_valido = PessoaService.checarCPF(elementos_CPF);
+                if (!cpf_valido){
+                    System.out.println("O CPF fornecido é inválido.\n");
+                    startView();
+                } else {
+                    
+                    //String sobrenome = scanner.nextLine();
+                    System.out.print("Zona Eleitoral: ");
+                    int zonaEleitoral = scanner.nextInt();
+                    System.out.print("Seção Eleitoral: ");
+                    int secaoEleitoral = scanner.nextInt();
+                    scanner.nextLine(); // consumir nova linha
+                    System.out.print("Título Eleitoral: ");
+                    String tituloEleitoral = scanner.nextLine();
+
+                    Eleitor eleitor = new Eleitor();
+                    Pessoa pessoa = new Pessoa();
+                    pessoa.setNome(nome);
+                    pessoa.setSobrenome(sobrenome);
+                    pessoa.setCpf(cpf_reconstruido);
+                    eleitor.setPessoa(pessoa);
+                    eleitor.setZonaEleitoral(zonaEleitoral);
+                    eleitor.setSecaoEleitoral(secaoEleitoral);
+                    eleitor.setTituloEleitoral(tituloEleitoral);
+
+                    eleitorService.cadastrarEleitor(eleitor);
+                    System.out.println("Eleitor cadastrado com sucesso!"); 
+
+                    } //fecha o else do CPF       
+                
+
+            }
     }
 
     private void buscarEleitorPorId() {
@@ -119,7 +170,7 @@ public class MainView implements View {
             System.out.println("Nenhum eleitor cadastrado.");
         } else {
             for (Eleitor eleitor : eleitores) {
-                System.out.println("ID: " + eleitor.getId() + ", Nome: " + eleitor.getPessoa().getNome() + " " + eleitor.getPessoa().getSobrenome());
+                System.out.println("ID: " + eleitor.getId() + ", Nome: " + eleitor.getPessoa().getNome());// + " " + eleitor.getPessoa().getSobrenome());
             }
         }
     }
@@ -227,10 +278,11 @@ public class MainView implements View {
         } else {
             for (Eleitor eleitor : eleitores) {
                 System.out.println("ID: " + eleitor.getId() +
-                        ", Nome: " + eleitor.getPessoa().getNome() + " " + eleitor.getPessoa().getSobrenome() +
-                        ", Zona Eleitoral: " + eleitor.getZonaEleitoral() +
-                        ", Seção Eleitoral: " + eleitor.getSecaoEleitoral() +
-                        ", Título Eleitoral: " + eleitor.getTituloEleitoral());
+                        "\nNome: " + eleitor.getPessoa().getNome() + 
+                        "\nCPF: " + eleitor.getPessoa().getCpf() + 
+                        "\nZona Eleitoral: " + eleitor.getZonaEleitoral() +
+                        "\nSeção Eleitoral: " + eleitor.getSecaoEleitoral() +
+                        "\nTítulo Eleitoral: " + eleitor.getTituloEleitoral());
             }
         }
     }
