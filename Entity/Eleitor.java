@@ -13,6 +13,8 @@ public class Eleitor extends Entity {
     private int zonaEleitoral;
     private int secaoEleitoral;
     private String tituloEleitoral;
+    private float multas;
+    private boolean situacao;
 
     // Getters e setters
     public Pessoa getPessoa() {
@@ -46,4 +48,24 @@ public class Eleitor extends Entity {
     public void setTituloEleitoral(String tituloEleitoral) {
         this.tituloEleitoral = tituloEleitoral;
     }
+
+    public float getMultas() {
+        return multas;
+    }
+
+    public void setMultas(float multas) {
+        this.multas = multas;
+    }
+
+    public boolean isSituacao() {
+        return situacao;
+    }
+
+    public void setSituacao(boolean situacao) {
+        this.situacao = situacao;
+    }
+    
+    
+    
+    
 }

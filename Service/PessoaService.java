@@ -185,6 +185,15 @@ public class PessoaService {
         
     }
     
+    public static int extractYearFromDate(String date) {
+        // Usando stream para separar a data e pegar o ano
+        return Arrays.stream(date.split("/"))
+                     .skip(2) // Pula os dois primeiros elementos (dia e mês)
+                     .findFirst() // Pega o primeiro elemento remanescente (ano)
+                     .map(Integer::parseInt) // Converte para inteiro;
+                     .orElseThrow(() -> new IllegalArgumentException("Data inválida")); // Caso contrário, lança uma exceção
+    }
+    
 
     
     

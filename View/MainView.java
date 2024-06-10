@@ -12,8 +12,10 @@ import Entity.Pessoa;
 import Entity.Endereco;
 import Service.EleitorService;
 import Service.PessoaService;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Scanner;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 
@@ -141,12 +143,14 @@ public class MainView implements View {
                     //padronizar cidade para inserir no cadastro
                     String cidade_para_cadastrar = EleitorService.padronizaCidade(cidade_para_selecionar_zona);
                     
+
                     
+
                     System.out.println("Foi gerado para " + nome + ":" +
                             "\nTítulo Eleitoral: " + tituloEleitoral +
                             "\nSeção: " + secaoEleitoral +
                             "\nZona: " + zonaEleitoral);
-                    
+                                        
                     //inserir os dados fornecidos
                     Endereco endereco = new Endereco();
                     Eleitor eleitor = new Eleitor();
@@ -167,9 +171,31 @@ public class MainView implements View {
                     eleitor.setZonaEleitoral(zonaEleitoral);
                     eleitor.setSecaoEleitoral(secaoEleitoral);
                     eleitor.setTituloEleitoral(tituloEleitoral);
+                    eleitor.setMultas(0);
+                    eleitor.setSituacao(true);
 
                     eleitorService.cadastrarEleitor(eleitor);
                     System.out.println("Eleitor cadastrado com sucesso!"); 
+                        if (idade_calc > 18){
+
+                            //calcular a multa por alistamento tardio
+                            int ano_nasc = PessoaService.extractYearFromDate(dn);
+                            List<Integer>anosMultas = EleitorService.pegaAnosMultas(ano_nasc);
+
+                            float valor_multa = (float) 3.51 * anosMultas.size();
+
+                            if (valor_multa > 0){
+                                DecimalFormat df = new DecimalFormat("#.##");
+                                String multaFormatada = df.format(valor_multa);
+
+                                System.out.println("Foi gerada uma multa de R$ "+ multaFormatada + " por alistamento tardio por não ter votado nas eleições de: ");
+                                System.out.println(anosMultas);
+                                System.out.println("O título de " + nome + " permanecerá INATIVO e será ativado automaticamente após a quitação da multa."); 
+                                eleitor.setSituacao(false);
+                                eleitor.setMultas(valor_multa);
+                            }
+
+                        }
 
                     } //fecha o else do CPF       
                 
@@ -184,7 +210,19 @@ public class MainView implements View {
 
         Eleitor eleitor = eleitorService.buscarEleitorPorId(id);
         if (eleitor != null) {
-            System.out.println("Eleitor encontrado: " + eleitor.getPessoa().getNome() + " " + eleitor.getPessoa().getSobrenome());
+            System.out.println("Eleitor encontrado: " + eleitor.getPessoa().getNome() +
+                    "\nTítulo: "+ eleitor.getTituloEleitoral());
+            if (eleitor.isSituacao() == false){
+                System.out.println("O eleitor encontra-se INATIVO devido a existência de uma multa no valor de R$" + eleitor.getMultas());
+                System.out.println("A situação mudará para ATIVO após a quitação da multa.");
+                System.out.println("Deseja quitar a multa agora? (1)Sim; (2)Não");
+                int quitar = scanner.nextInt();
+                scanner.nextLine(); // consumir nova linha
+                if (quitar == 1){
+                    EleitorService.quitarMulta(eleitor);
+                }
+                
+            }
         } else {
             System.out.println("Eleitor não encontrado.");
         }

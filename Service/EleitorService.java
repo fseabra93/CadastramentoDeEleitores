@@ -9,6 +9,7 @@ import Entity.Eleitor;
 import Exception.EleitorNotFoundException;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -101,7 +102,7 @@ public class EleitorService {
     public static int geradorDeSecao(){
        
         Supplier<Double> fabricaDeNumeros = () -> Math.random();
-        int secao = (int)(fabricaDeNumeros.get()*100);
+        int secao = (int)(fabricaDeNumeros.get()*100 +1);
         
         return secao;
     }
@@ -138,6 +139,33 @@ public class EleitorService {
         return mapCidades.get(cidade);
                
     }
+    
+    public static List<Integer> pegaAnosMultas(int anoNasc){
+        
+        List<Integer>anos_eleitorais = new ArrayList<>();
+        // Obtém o ano atual
+        Calendar calendar = Calendar.getInstance();
+        int anoAtual = calendar.get(Calendar.YEAR);
+        int ano = anoNasc + 18; 
+        while(ano < anoAtual){
+            if (ano % 2 == 0){
+                anos_eleitorais.add(ano);
+            }
+            ano++;
+        }
+        
+        return anos_eleitorais;
+         
+    }
+    
+    public static void quitarMulta(Eleitor eleitor){
+        eleitor.setMultas(0);
+        eleitor.setSituacao(true);
+        if (eleitor.getMultas() == 0 && eleitor.isSituacao() == true){
+            System.out.println("Eleitor " + eleitor.getPessoa().getNome() + " agora está quite com a Justiça Eleitoral.");
+        }
+        
+    } 
     
     
 }
