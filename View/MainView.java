@@ -81,7 +81,6 @@ public class MainView implements View {
     }
 
     private void cadastrarEleitor() {
-        clearConsole();
         System.out.println("\nEntrou no módulo Cadastrar Eleitor");
         System.out.println("Digite a data de nascimento do próximo eleitor no formato dd/mm/aaaa:");
         String dn = scanner.nextLine();
@@ -211,9 +210,9 @@ public class MainView implements View {
 
         Eleitor eleitor = eleitorService.buscarEleitorPorId(id);
         if (eleitor != null) {
-            clearConsole();
-            System.out.println("Eleitor encontrado: " + eleitor.getPessoa().getNome() +
-                    "\nTítulo: "+ eleitor.getTituloEleitoral());
+            System.out.println("Eleitor encontrado:");
+                    imprimeEleitor(eleitor);
+
             if (eleitor.isSituacao() == false){
                 System.out.println("O eleitor encontra-se INATIVO devido a existência de uma multa no valor de R$" + eleitor.getMultas());
                 System.out.println("A situação mudará para ATIVO após a quitação da multa.");
@@ -235,7 +234,6 @@ public class MainView implements View {
         if (eleitores.isEmpty()) {
             System.out.println("Nenhum eleitor cadastrado.");
         } else {
-            clearConsole();
             for (Eleitor eleitor : eleitores) {
                 System.out.print("ID: " + eleitor.getId() + ", Nome: " + eleitor.getPessoa().getNome());
                 if (eleitor.isSituacao() == true){
@@ -246,6 +244,15 @@ public class MainView implements View {
                 }
                 
             }
+            System.out.println("Deseja buscar algum eleitor peo ID?  (1)Sim; (2)Não");
+            int buscar = scanner.nextInt();
+            scanner.nextLine(); // consumir nova linha
+            if (buscar == 1){
+                 buscarEleitorPorId();
+            }
+            
+            
+            
         }
     }
 
@@ -385,15 +392,14 @@ public class MainView implements View {
             }
         }
     }
-    
-    public void clearConsole() {
-        System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-    }
+
     
     public static void imprimeEleitor(Eleitor eleitor){
         System.out.println("Nome: " + eleitor.getPessoa().getNome());
         System.out.println("Título: "+ eleitor.getTituloEleitoral());
         System.out.println("Zona Eleitoral: " + eleitor.getZonaEleitoral());
         System.out.println("Seção: " + eleitor.getSecaoEleitoral());
+        String condicao = (eleitor.isSituacao()) ? "SItuação: Quite" : "SItuação: INATIVO";
+        System.out.println(condicao);
     }
 }
