@@ -35,7 +35,7 @@ public class MainView implements View {
     @Override
     public void startView() {
         while (true) {
-            System.out.println("===== Sistema de Cadastro de Eleitores =====");
+            System.out.println("\n===== Sistema de Cadastro de Eleitores =====");
             System.out.println("1. Cadastrar Eleitor");
             System.out.println("2. Buscar Eleitor por ID");
             System.out.println("3. Listar Todos Eleitores");
@@ -81,6 +81,7 @@ public class MainView implements View {
     }
 
     private void cadastrarEleitor() {
+        clearConsole();
         System.out.println("\nEntrou no módulo Cadastrar Eleitor");
         System.out.println("Digite a data de nascimento do próximo eleitor no formato dd/mm/aaaa:");
         String dn = scanner.nextLine();
@@ -146,7 +147,7 @@ public class MainView implements View {
 
                     
 
-                    System.out.println("Foi gerado para " + nome + ":" +
+                    System.out.println("\nFoi gerado para " + nome + ":" +
                             "\nTítulo Eleitoral: " + tituloEleitoral +
                             "\nSeção: " + secaoEleitoral +
                             "\nZona: " + zonaEleitoral);
@@ -210,6 +211,7 @@ public class MainView implements View {
 
         Eleitor eleitor = eleitorService.buscarEleitorPorId(id);
         if (eleitor != null) {
+            clearConsole();
             System.out.println("Eleitor encontrado: " + eleitor.getPessoa().getNome() +
                     "\nTítulo: "+ eleitor.getTituloEleitoral());
             if (eleitor.isSituacao() == false){
@@ -233,8 +235,16 @@ public class MainView implements View {
         if (eleitores.isEmpty()) {
             System.out.println("Nenhum eleitor cadastrado.");
         } else {
+            clearConsole();
             for (Eleitor eleitor : eleitores) {
-                System.out.println("ID: " + eleitor.getId() + ", Nome: " + eleitor.getPessoa().getNome());// + " " + eleitor.getPessoa().getSobrenome());
+                System.out.print("ID: " + eleitor.getId() + ", Nome: " + eleitor.getPessoa().getNome());
+                if (eleitor.isSituacao() == true){
+                    System.out.println(", Situação: Quite");
+                } else {
+                    System.out.println(", Situação: INATIVO");
+                    
+                }
+                
             }
         }
     }
@@ -248,29 +258,54 @@ public class MainView implements View {
         if (eleitor == null) {
             System.out.println("Eleitor não encontrado.");
             return;
+        } else {
+ 
+            System.out.println("\n===== Atualizar Eleitor =====");
+            System.out.println("Que campo do eleitor " + eleitor.getPessoa().getNome() +" você deseja atializar?");
+            System.out.println("1. Nome");
+            System.out.println("2. Endereço");
+            System.out.println("Obs. Caso a atualização do endereço seja para outro município, o campo Zona Eleitoral será atualizado automaticamente.");
+            int escolha = scanner.nextInt();
+            scanner.nextLine(); // consumir nova linha
+            switch (escolha) {
+                    case 1:
+                        System.out.print("Nome atual (" + eleitor.getPessoa().getNome() + "): ");
+                        System.out.println("Digite nome completo para atualização:");
+                        String nome = scanner.nextLine();
+                        String sobrenome = PessoaService.getSobrenome(nome);
+                        eleitor.getPessoa().setNome(nome);
+                        eleitor.getPessoa().setSobrenome(sobrenome);
+                        break;
+                    case 2:
+                        System.out.println("Atualizar endereço de "+ eleitor.getPessoa().getNome());
+                        System.out.print("Rua: ");
+                        String rua_digitada = scanner.nextLine();
+                        eleitor.getPessoa().setRua(rua_digitada);
+                        System.out.print("Número: ");
+                        String num_digitado = scanner.nextLine();
+                        eleitor.getPessoa().setNumero_compl(num_digitado);
+                        System.out.print("Bairro: ");
+                        String bairro_digitado = scanner.nextLine();
+                        eleitor.getPessoa().setBairro(bairro_digitado);
+                        System.out.print("Cidade (Natal, Macaíba ou Parnamirim): ");
+                        String cidade_digitada = scanner.nextLine();
+                        String cidade_para_selecionar_zona = EleitorService.converterParaMinusculasSemAcento(cidade_digitada);
+                        int zonaEleitoral = EleitorService.selecionaZona(cidade_para_selecionar_zona);                   
+                        //padronizar cidade para inserir no cadastro
+                        String cidade_para_cadastrar = EleitorService.padronizaCidade(cidade_para_selecionar_zona);
+                        eleitor.getPessoa().setCidade(cidade_para_cadastrar);
+                        eleitor.setZonaEleitoral(zonaEleitoral);
+
+                        int secaoEleitoral = EleitorService.geradorDeSecao();
+                        eleitor.setSecaoEleitoral(secaoEleitoral);
+                        break;
+                    default:
+                        System.out.println("Opção inválida.");
+                        startView();
+                }
         }
-
-        System.out.print("Nome (" + eleitor.getPessoa().getNome() + "): ");
-        String nome = scanner.nextLine();
-        System.out.print("Sobrenome (" + eleitor.getPessoa().getSobrenome() + "): ");
-        String sobrenome = scanner.nextLine();
-        System.out.print("Zona Eleitoral (" + eleitor.getZonaEleitoral() + "): ");
-        int zonaEleitoral = scanner.nextInt();
-        scanner.nextLine();  // Consumir nova linha
-        System.out.print("Seção Eleitoral (" + eleitor.getSecaoEleitoral() + "): ");
-        int secaoEleitoral = scanner.nextInt();
-        scanner.nextLine();  // Consumir nova linha
-        System.out.print("Título Eleitoral (" + eleitor.getTituloEleitoral() + "): ");
-        String tituloEleitoral = scanner.nextLine();
-
-        if (!nome.isEmpty()) eleitor.getPessoa().setNome(nome);
-        if (!sobrenome.isEmpty()) eleitor.getPessoa().setSobrenome(sobrenome);
-        eleitor.setZonaEleitoral(zonaEleitoral);
-        eleitor.setSecaoEleitoral(secaoEleitoral);
-        if (!tituloEleitoral.isEmpty()) eleitor.setTituloEleitoral(tituloEleitoral);
-
-        eleitorService.atualizarEleitor(eleitor);
         System.out.println("Eleitor atualizado com sucesso!");
+        imprimeEleitor(eleitor);
     }
 
     private void removerEleitor() {
@@ -349,5 +384,16 @@ public class MainView implements View {
                         "\nTítulo Eleitoral: " + eleitor.getTituloEleitoral());
             }
         }
+    }
+    
+    public void clearConsole() {
+        System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+    }
+    
+    public static void imprimeEleitor(Eleitor eleitor){
+        System.out.println("Nome: " + eleitor.getPessoa().getNome());
+        System.out.println("Título: "+ eleitor.getTituloEleitoral());
+        System.out.println("Zona Eleitoral: " + eleitor.getZonaEleitoral());
+        System.out.println("Seção: " + eleitor.getSecaoEleitoral());
     }
 }
