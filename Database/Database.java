@@ -67,34 +67,5 @@ public class Database {
         }
     }
 
-    public static class DatabaseTable<T extends Entity> implements DatabaseTableI<T> {
-        private Map<Integer, T> table = new HashMap<>();
-        private int currentId = 1;
 
-        @Override
-        public void save(T entity) {
-            entity.setId(currentId++);
-            table.put(entity.getId(), entity);
-        }
-
-        @Override
-        public T findById(int id) {
-            return table.get(id);
-        }
-
-        @Override
-        public List<T> findAll() {
-            return new ArrayList<>(table.values());
-        }
-
-        @Override
-        public void update(T entity) {
-            table.put(entity.getId(), entity);
-        }
-
-        @Override
-        public void delete(int id) {
-            table.remove(id);
-        }
-    }
 }

@@ -136,7 +136,7 @@ public class PessoaService {
     
 
     
-    public static boolean checa_primeiro_digito(List<Character>lista, int verificador){
+    private static boolean checa_primeiro_digito(List<Character>lista, int verificador){
         int mult = 10;
         List<Integer>lista_multiplica = new ArrayList();
         
@@ -159,7 +159,7 @@ public class PessoaService {
         }
     }
     
-    public static boolean checa_segundo_digito(List<Character>lista, int num , int verificador){
+    private static boolean checa_segundo_digito(List<Character>lista, int num , int verificador){
         int mult = 11;
         List<Integer>lista_multiplica = new ArrayList();
         

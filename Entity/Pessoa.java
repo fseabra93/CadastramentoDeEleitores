@@ -10,8 +10,9 @@ package Entity;
  */
 public class Pessoa extends Endereco{
     private String nome;
-    private String cpf;
     private String sobrenome;
+    private String cpf;
+    private String dataNascimento;
     public Endereco endereco;
 
     public Endereco getEndereco() {
@@ -46,6 +47,14 @@ public class Pessoa extends Endereco{
     public void setCpf(String cpf) {
         this.cpf = cpf;
     }
-    
+
+    public String getDataNascimento() {
+        return dataNascimento;
+    }
+
+    public void setDataNascimento(String dataNascimento) {
+        this.dataNascimento = dataNascimento;
+    }
+
     
 }

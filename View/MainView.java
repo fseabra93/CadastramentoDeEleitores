@@ -87,7 +87,7 @@ public class MainView implements View {
         //corrigir se a pessoa não digitar um 0 no início dos dias e/ou dos meses 1 a 9
         List<Character> listaCharDN = PessoaService.consertarInsercaoData(dn);
         dn = listaCharDN.stream()
-                .map(String::valueOf)
+              .map(String::valueOf)
               .collect(Collectors.joining());
         
         int idade_calc = PessoaService.checarIdade(dn);
@@ -164,6 +164,7 @@ public class MainView implements View {
                     
                     pessoa.setNome(nome);
                     pessoa.setSobrenome(sobrenome);
+                    pessoa.setDataNascimento(dn);
                     pessoa.setCpf(cpf_reconstruido);
                     pessoa.setEndereco(endereco);
                               
