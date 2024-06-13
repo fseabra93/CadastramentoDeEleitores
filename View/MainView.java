@@ -279,7 +279,6 @@ public class MainView implements View {
             System.out.println("2. Endereço");
             System.out.println("Obs. Caso a atualização do endereço seja para outro município, o campo Zona Eleitoral será atualizado automaticamente.");
             String input = scanner.nextLine();
-            
             int escolha = 0;
             
             try {
@@ -341,7 +340,7 @@ public class MainView implements View {
 
     private void filtrarEleitores() {
         System.out.println("===== Filtrar Eleitores =====");
-        System.out.println("1. Por Nome");
+        System.out.println("1. Por Sobrenome");
         System.out.println("2. Por Zona Eleitoral");
         System.out.print("Escolha uma opção: ");
         int opcao = scanner.nextInt();
@@ -349,16 +348,19 @@ public class MainView implements View {
 
         switch (opcao) {
             case 1:
-                System.out.print("Nome: ");
-                String nome = scanner.nextLine();
+                System.out.print("Sobrenome: ");
+                String sobrenome = scanner.nextLine();
                 List<Eleitor> eleitoresPorNome = eleitorService.filtrarEleitores(
-                    eleitor -> eleitor.getPessoa().getNome().equalsIgnoreCase(nome));
+                    eleitor -> eleitor.getPessoa().getSobrenome().equalsIgnoreCase(sobrenome));
                 mostrarEleitores(eleitoresPorNome);
                 break;
             case 2:
-                System.out.print("Zona Eleitoral: ");
+                System.out.print("Zona Eleitoral (10, 20 ou 30): ");
                 int zonaEleitoral = scanner.nextInt();
                 scanner.nextLine(); // Consumir nova linha
+                
+                
+                
                 List<Eleitor> eleitoresPorZona = eleitorService.filtrarEleitores(
                     eleitor -> eleitor.getZonaEleitoral() == zonaEleitoral);
                 mostrarEleitores(eleitoresPorZona);
