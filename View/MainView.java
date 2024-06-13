@@ -6,7 +6,7 @@ package View;
 import View.MainView;
 
 
-
+import Exception.InvalidNumberException;
 import Entity.Eleitor;
 import Entity.Pessoa;
 import Entity.Endereco;
@@ -218,12 +218,15 @@ public class MainView implements View {
                 System.out.println("O eleitor encontra-se INATIVO devido a existência de uma multa no valor de R$" + eleitor.getMultas());
                 System.out.println("A situação mudará para ATIVO após a quitação da multa.");
                 System.out.println("Deseja quitar a multa agora? (1)Sim; (2)Não");
-                int quitar = scanner.nextInt();
-                scanner.nextLine(); // consumir nova linha
-                if (quitar == 1){
-                    EleitorService.quitarMulta(eleitor);
-                }
-                
+                String input = scanner.nextLine();
+                try {
+                    int quitar = InvalidNumberException.parseNumber(input);
+                    if (quitar == 1){
+                        EleitorService.quitarMulta(eleitor);
+                    }
+                } catch (InvalidNumberException e) {
+                    System.err.println(e.getMessage());
+                }             
             }
         } else {
             System.out.println("Eleitor não encontrado.");
@@ -246,19 +249,21 @@ public class MainView implements View {
                 
             }
             System.out.println("Deseja buscar algum eleitor peo ID?  (1)Sim; (2)Não");
-            int buscar = scanner.nextInt();
-            scanner.nextLine(); // consumir nova linha
-            if (buscar == 1){
-                 buscarEleitorPorId();
-            }
-            
-            
-            
+            String input = scanner.nextLine();
+            try {
+                int buscar = InvalidNumberException.parseNumber(input);
+                if (buscar == 1){
+                    buscarEleitorPorId();
+                }
+            } catch (InvalidNumberException e) {
+                System.err.println(e.getMessage());
+            }                   
         }
     }
 
     private void atualizarEleitor() {
-        System.out.print("ID do Eleitor: ");
+        listarTodosEleitores();
+        System.out.print("Digite o ID do Eleitor que deseja atualizar: ");
         int id = scanner.nextInt();
         scanner.nextLine(); // consumir nova linha
 
@@ -273,8 +278,17 @@ public class MainView implements View {
             System.out.println("1. Nome");
             System.out.println("2. Endereço");
             System.out.println("Obs. Caso a atualização do endereço seja para outro município, o campo Zona Eleitoral será atualizado automaticamente.");
-            int escolha = scanner.nextInt();
-            scanner.nextLine(); // consumir nova linha
+            String input = scanner.nextLine();
+            
+            int escolha = 0;
+            
+            try {
+                escolha = InvalidNumberException.parseNumber(input);
+                if (escolha == 1){
+                }
+            } catch (InvalidNumberException e) {
+                System.err.println(e.getMessage());
+            } 
             switch (escolha) {
                     case 1:
                         System.out.print("Nome atual (" + eleitor.getPessoa().getNome() + "): ");
