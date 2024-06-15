@@ -13,6 +13,7 @@ import Entity.Endereco;
 import Service.EleitorService;
 import Service.PessoaService;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.StringJoiner;
@@ -37,7 +38,7 @@ public class MainView implements View {
         while (true) {
             System.out.println("\n===== Sistema de Cadastro de Eleitores =====");
             System.out.println("1. Cadastrar Eleitor");
-            System.out.println("2. Buscar Eleitor por ID");
+            System.out.println("2. Buscar Eleitor");
             System.out.println("3. Listar Todos Eleitores");
             System.out.println("4. Atualizar Eleitor");
             System.out.println("5. Remover Eleitor");
@@ -54,7 +55,28 @@ public class MainView implements View {
                     cadastrarEleitor();
                     break;
                 case 2:
-                    buscarEleitorPorId();
+                    System.out.println("Digite:\n(1) para buscar pelo ID"
+                            + "\n(2) para buscar pelo pelo Título"
+                            + "\n(3) para buscar pelo CPF");
+                    String input = scanner.nextLine();
+                    try {
+                        int num_buscar = InvalidNumberException.parseNumber(input);
+                        if (num_buscar == 1){
+                            buscarEleitorPorId();
+                        }
+                        else if (num_buscar == 2){
+                            buscarPorTitulo();
+                        } else if (num_buscar == 3){
+                            buscarPorCpf();
+                        }
+                        else {
+                            System.out.println("Opção inválida.\n");
+                            startView();
+                        }
+                    } catch (InvalidNumberException e) {
+                        System.err.println(e.getMessage());
+                    }                     
+                    
                     break;
                 case 3:
                     listarTodosEleitores();
@@ -142,10 +164,7 @@ public class MainView implements View {
                     
                     //padronizar cidade para inserir no cadastro
                     String cidade_para_cadastrar = EleitorService.padronizaCidade(cidade_para_selecionar_zona);
-                    
-
-                    
-
+  
                     System.out.println("\nFoi gerado para " + nome + ":" +
                             "\nTítulo Eleitoral: " + tituloEleitoral +
                             "\nSeção: " + secaoEleitoral +
@@ -330,12 +349,35 @@ public class MainView implements View {
     }
 
     private void removerEleitor() {
-        System.out.print("ID do Eleitor: ");
-        int id = scanner.nextInt();
-        scanner.nextLine(); // Consumir nova linha
+        System.out.println("A remoção de um eleitor deve ser feita pelo ID, escolha uma opção:");
+        System.out.println("Digite (1) se vc sabe o ID do eleitor que deseja remover");
+        System.out.println("Digite (2) se vc sabe o CPF do eleitor que deseja remover. Anote o ID do eleitora que será exibido na tela.");
+        System.out.println("Digite (3) se vc sabe o número do Título do eleitor que deseja remover. Anote o ID do eleitora que será exibido na tela.");
+        System.out.println("Caso não saiba nenhuma dessas opções, digite (4) para retornar ao MENU inicial e depois a opção de 'Listar' os eleitores");
+        String input = scanner.nextLine();
+        try {
+                int opcao = InvalidNumberException.parseNumber(input);
+                if (opcao == 1){
+                        System.out.print("ID do Eleitor: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine(); // Consumir nova linha
+                        eleitorService.removerEleitor(id);
+                        System.out.println("Eleitor removido com sucesso!");
+                } else if (opcao == 2){
+                    buscarPorCpf();                    
+                } else if (opcao == 3){
+                    buscarPorTitulo();                    
+                } else if (opcao == 4){
+                    startView();
+                } else {
+                    System.out.println("Opção inválida.");
+                    startView();
+                }
+        } catch (InvalidNumberException e) {
+               System.err.println(e.getMessage());
+        }  
+        
 
-        eleitorService.removerEleitor(id);
-        System.out.println("Eleitor removido com sucesso!");
     }
 
     private void filtrarEleitores() {
@@ -358,16 +400,53 @@ public class MainView implements View {
                 System.out.print("Zona Eleitoral (10, 20 ou 30): ");
                 int zonaEleitoral = scanner.nextInt();
                 scanner.nextLine(); // Consumir nova linha
-                
-                
-                
                 List<Eleitor> eleitoresPorZona = eleitorService.filtrarEleitores(
                     eleitor -> eleitor.getZonaEleitoral() == zonaEleitoral);
                 mostrarEleitores(eleitoresPorZona);
                 break;
+
             default:
                 System.out.println("Opção inválida. Tente novamente.");
         }
+    }
+    
+    private void buscarPorTitulo(){
+            System.out.print("Digite o número do Título (somente numeros): ");
+            String titulo_buscar = scanner.nextLine();
+            
+                   // Inserir espaços após a 4ª e a 9ª posições
+            StringBuilder sb = new StringBuilder(titulo_buscar);
+            sb.insert(4, " ");
+            sb.insert(9, " ");
+            
+            String titulo_formatado = sb.toString();
+
+            List<Eleitor> eleitoresPorNome = eleitorService.filtrarEleitores(
+                    eleitor -> eleitor.getTituloEleitoral().equalsIgnoreCase(titulo_formatado));
+                mostrarEleitores(eleitoresPorNome);
+            
+    }
+    
+    private void buscarPorCpf(){
+            System.out.print("Digite o número do CPF (somente numeros): ");
+            String cpf_buscar = scanner.nextLine();
+            
+                            //Se a pessoa esquecer de digitar algum dígito do CPF inserir zeros pra não quebrar o programa
+            if (cpf_buscar.length() < 11){
+                int tam = cpf_buscar.length();
+                for (int i = tam; i < 11; i++){
+                    cpf_buscar = cpf_buscar + "0";
+                }
+            }
+                //Separa o CPF em uma lista de char para testar validade
+            List<Character> elementos_CPF = PessoaService.padronizaCPF(cpf_buscar);
+                //Reconstrói CPF no formato correto para inserir no cadastro caso passe no teste de validade
+            String cpf_reconstruido = PessoaService.reconstroiCPF(elementos_CPF);
+
+            List<Eleitor> eleitoresPorNome = eleitorService.filtrarEleitores(
+                    eleitor -> eleitor.getPessoa().getCpf().equalsIgnoreCase(cpf_reconstruido));
+                mostrarEleitores(eleitoresPorNome);
+            
     }
 
     private void ordenarEleitores() {
@@ -400,23 +479,25 @@ public class MainView implements View {
             System.out.println("Nenhum eleitor encontrado.");
         } else {
             for (Eleitor eleitor : eleitores) {
-                System.out.println("ID: " + eleitor.getId() +
+                System.out.println("\nID: " + eleitor.getId() +
                         "\nNome: " + eleitor.getPessoa().getNome() + 
                         "\nCPF: " + eleitor.getPessoa().getCpf() + 
                         "\nZona Eleitoral: " + eleitor.getZonaEleitoral() +
                         "\nSeção Eleitoral: " + eleitor.getSecaoEleitoral() +
                         "\nTítulo Eleitoral: " + eleitor.getTituloEleitoral());
+                        String condicao = (eleitor.isSituacao()) ? "Situação: Quite" : "Situação: INATIVO";
+                        System.out.println(condicao);
             }
         }
     }
 
     
     public static void imprimeEleitor(Eleitor eleitor){
-        System.out.println("Nome: " + eleitor.getPessoa().getNome());
+        System.out.println("\nNome: " + eleitor.getPessoa().getNome());
         System.out.println("Título: "+ eleitor.getTituloEleitoral());
         System.out.println("Zona Eleitoral: " + eleitor.getZonaEleitoral());
         System.out.println("Seção: " + eleitor.getSecaoEleitoral());
-        String condicao = (eleitor.isSituacao()) ? "SItuação: Quite" : "SItuação: INATIVO";
-        System.out.println(condicao);
+        String condicao = (eleitor.isSituacao()) ? "Situação: Quite" : "Situação: INATIVO";
+        
     }
 }
