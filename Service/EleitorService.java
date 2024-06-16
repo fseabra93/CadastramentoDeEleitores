@@ -18,6 +18,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import View.View;
 
 /**
  *
@@ -38,6 +39,7 @@ public class EleitorService {
         Eleitor eleitor = eleitorDAO.findById(id);
         if (eleitor == null) {
             throw new EleitorNotFoundException("Eleitor com ID " + id + " não encontrado.");
+            
         }
         return eleitor;
     }
@@ -164,8 +166,13 @@ public class EleitorService {
         if (eleitor.getMultas() == 0 && eleitor.isSituacao() == true){
             System.out.println("Eleitor " + eleitor.getPessoa().getNome() + " agora está quite com a Justiça Eleitoral.");
         }
+        eleitor.limparAnosSemVotar();
         
     } 
+    
+
+    
+
     
     
 }

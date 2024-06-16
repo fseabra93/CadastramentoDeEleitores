@@ -194,6 +194,16 @@ public class PessoaService {
                      .orElseThrow(() -> new IllegalArgumentException("Data inválida")); // Caso contrário, lança uma exceção
     }
     
+    public static boolean isNumeric(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (!Character.isDigit(c) && c != '.' && c != '-') {
+                return false;
+            }
+        }
+        return true;
+    }
+    
 
     
     

@@ -19,5 +19,5 @@ package Exception;
                 } catch (NumberFormatException e) {
                     throw new InvalidNumberException("Erro: Entrada inválida. Retornando ao menu principal.");
                 }
-            }
+        }
     }

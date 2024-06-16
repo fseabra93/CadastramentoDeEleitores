@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package View;
-import View.MainView;
+//import View.MainView;
 
 
 import Exception.InvalidNumberException;
@@ -13,11 +13,15 @@ import Entity.Endereco;
 import Service.EleitorService;
 import Service.PessoaService;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.StringJoiner;
+//import java.util.StringJoiner;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 
 
 /**
@@ -44,11 +48,18 @@ public class MainView implements View {
             System.out.println("5. Remover Eleitor");
             System.out.println("6. Filtrar Eleitores");
             System.out.println("7. Ordenar Eleitores");
-            System.out.println("8. Sair");
+            System.out.println("8. Iniciar Eleição");
+            System.out.println("9. Sair do Sistema");
             System.out.print("Escolha uma opção: ");
 
-            int escolha = scanner.nextInt();
-            scanner.nextLine(); // consumir nova linha
+            int escolha = 8;
+            //scanner.nextLine(); // consumir nova linha
+            String escolha_menu = scanner.nextLine();
+            try {
+                escolha = InvalidNumberException.parseNumber(escolha_menu);            
+            } catch (InvalidNumberException e) {
+                System.err.println(e.getMessage());
+            } 
 
             switch (escolha) {
                 case 1:
@@ -94,6 +105,9 @@ public class MainView implements View {
                     ordenarEleitores();
                     break;
                 case 8:
+                    iniciarEleicao();
+                    break;
+                case 9:
                     System.out.println("Encerrando o sistema...");
                     return;
                 default:
@@ -103,6 +117,7 @@ public class MainView implements View {
     }
 
     private void cadastrarEleitor() {
+
         System.out.println("\nEntrou no módulo Cadastrar Eleitor");
         System.out.println("Digite a data de nascimento do próximo eleitor no formato dd/mm/aaaa:");
         String dn = scanner.nextLine();
@@ -111,6 +126,7 @@ public class MainView implements View {
         dn = listaCharDN.stream()
               .map(String::valueOf)
               .collect(Collectors.joining());
+
         
         int idade_calc = PessoaService.checarIdade(dn);
         
@@ -125,8 +141,14 @@ public class MainView implements View {
                 //pega automaticamente o sobrenome do nome completo digitado apenas para efeito de busca futura
                 String sobrenome = PessoaService.getSobrenome(nome);
                 
-                System.out.print("Digite o CPF de " + nome + ": ");
+                System.out.print("Digite o CPF de " + nome + " (apenas números): ");
                 String cpf_digitado = scanner.nextLine();
+                
+                boolean cpf_numeric = PessoaService.isNumeric(cpf_digitado);
+                if (!cpf_numeric){
+                    System.out.println("O CPF não pode conter letras");
+                    startView();
+                }
 
                 
                 //Se a pessoa esquecer de digitar algum dígito do CPF inserir zeros pra não quebrar o programa
@@ -142,80 +164,97 @@ public class MainView implements View {
                 String cpf_reconstruido = PessoaService.reconstroiCPF(elementos_CPF);
                 //Testa se CPF é válido
                 boolean cpf_valido = PessoaService.checarCPF(elementos_CPF);
+                boolean contem = false;
                 if (!cpf_valido){
                     System.out.println("O CPF fornecido é inválido.\n");
                     startView();
                 } else {
-                    System.out.println("Cadastrar endereço de "+nome);
-                    System.out.print("Rua: ");
-                    String rua_digitada = scanner.nextLine();
-                    System.out.print("Número: ");
-                    String num_digitado = scanner.nextLine();
-                    System.out.print("Bairro: ");
-                    String bairro_digitado = scanner.nextLine();
-                    System.out.print("Cidade (Natal, Macaíba ou Parnamirim): ");
-                    String cidade_digitada = scanner.nextLine();
-                    
-                    //String sobrenome = scanner.nextLine();
-                    String tituloEleitoral = EleitorService.geradorDeTitulo();
-                    int secaoEleitoral = EleitorService.geradorDeSecao();
-                    String cidade_para_selecionar_zona = EleitorService.converterParaMinusculasSemAcento(cidade_digitada);
-                    int zonaEleitoral = EleitorService.selecionaZona(cidade_para_selecionar_zona);
-                    
-                    //padronizar cidade para inserir no cadastro
-                    String cidade_para_cadastrar = EleitorService.padronizaCidade(cidade_para_selecionar_zona);
-  
-                    System.out.println("\nFoi gerado para " + nome + ":" +
-                            "\nTítulo Eleitoral: " + tituloEleitoral +
-                            "\nSeção: " + secaoEleitoral +
-                            "\nZona: " + zonaEleitoral);
-                                        
-                    //inserir os dados fornecidos
-                    Endereco endereco = new Endereco();
-                    Eleitor eleitor = new Eleitor();
                     Pessoa pessoa = new Pessoa();
-                    
-                    endereco.setRua(rua_digitada);
-                    endereco.setNumero_compl(num_digitado);
-                    endereco.setBairro(bairro_digitado);
-                    endereco.setCidade(cidade_para_cadastrar);
-                    endereco.setEstado("RN");
-                    
-                    pessoa.setNome(nome);
-                    pessoa.setSobrenome(sobrenome);
-                    pessoa.setDataNascimento(dn);
-                    pessoa.setCpf(cpf_reconstruido);
-                    pessoa.setEndereco(endereco);
-                              
-                    eleitor.setPessoa(pessoa);
-                    eleitor.setZonaEleitoral(zonaEleitoral);
-                    eleitor.setSecaoEleitoral(secaoEleitoral);
-                    eleitor.setTituloEleitoral(tituloEleitoral);
-                    eleitor.setMultas(0);
-                    eleitor.setSituacao(true);
+                    Eleitor eleitor = new Eleitor();
+                    List<Eleitor> eleitores = eleitorService.listarTodosEleitores(); 
+                    //checar se já tem alguém como o cpf fornecido (duplicidade)
+                    for (Eleitor eleitorProcurar : eleitores) {
+                        if (eleitorProcurar.getPessoa().getCpf().equals(cpf_reconstruido)){
+                            contem = true;
+                            }
+                    }
+                    if (contem) {
+                        System.out.println("O CPF digitado já se emcontra cadastrado para um eleitor no sistema.");
+                        startView();
+                    } else {
+                        System.out.println("Cadastrar endereço de "+ nome);
+                        System.out.print("Rua: ");
+                        String rua_digitada = scanner.nextLine();
+                        System.out.print("Número: ");
+                        String num_digitado = scanner.nextLine();
+                        System.out.print("Bairro: ");
+                        String bairro_digitado = scanner.nextLine();
+                        System.out.print("Cidade (Natal, Macaíba ou Parnamirim): ");
+                        String cidade_digitada = scanner.nextLine();
 
-                    eleitorService.cadastrarEleitor(eleitor);
-                    System.out.println("Eleitor cadastrado com sucesso!"); 
-                        if (idade_calc > 18){
+                        //String sobrenome = scanner.nextLine();
+                        String tituloEleitoral = EleitorService.geradorDeTitulo();
+                        int secaoEleitoral = EleitorService.geradorDeSecao();
+                        String cidade_para_selecionar_zona = EleitorService.converterParaMinusculasSemAcento(cidade_digitada);
+                        int zonaEleitoral = EleitorService.selecionaZona(cidade_para_selecionar_zona);
 
-                            //calcular a multa por alistamento tardio
-                            int ano_nasc = PessoaService.extractYearFromDate(dn);
-                            List<Integer>anosMultas = EleitorService.pegaAnosMultas(ano_nasc);
+                        //padronizar cidade para inserir no cadastro
+                        String cidade_para_cadastrar = EleitorService.padronizaCidade(cidade_para_selecionar_zona);
 
-                            float valor_multa = (float) 3.51 * anosMultas.size();
+                        System.out.println("\nFoi gerado para " + nome + ":" +
+                                "\nTítulo Eleitoral: " + tituloEleitoral +
+                                "\nSeção: " + secaoEleitoral +
+                                "\nZona: " + zonaEleitoral);
 
-                            if (valor_multa > 0){
-                                DecimalFormat df = new DecimalFormat("#.##");
-                                String multaFormatada = df.format(valor_multa);
+                        //inserir os dados fornecidos
+                        Endereco endereco = new Endereco();
+                        
 
-                                System.out.println("Foi gerada uma multa de R$ "+ multaFormatada + " por alistamento tardio por não ter votado nas eleições de: ");
-                                System.out.println(anosMultas);
-                                System.out.println("O título de " + nome + " permanecerá INATIVO e será ativado automaticamente após a quitação da multa."); 
-                                eleitor.setSituacao(false);
-                                eleitor.setMultas(valor_multa);
+                        endereco.setRua(rua_digitada);
+                        endereco.setNumero_compl(num_digitado);
+                        endereco.setBairro(bairro_digitado);
+                        endereco.setCidade(cidade_para_cadastrar);
+                        endereco.setEstado("RN");
+
+                        pessoa.setNome(nome);
+                        pessoa.setSobrenome(sobrenome);
+                        pessoa.setDataNascimento(dn);
+                        pessoa.setCpf(cpf_reconstruido);
+                        pessoa.setEndereco(endereco);
+
+                        eleitor.setPessoa(pessoa);
+                        eleitor.setZonaEleitoral(zonaEleitoral);
+                        eleitor.setSecaoEleitoral(secaoEleitoral);
+                        eleitor.setTituloEleitoral(tituloEleitoral);
+                        eleitor.setMultas(0);
+                        eleitor.setSituacao(true);
+
+                        eleitorService.cadastrarEleitor(eleitor);
+                        System.out.println("Eleitor cadastrado com sucesso!"); 
+                            if (idade_calc > 18){
+
+                                //calcular a multa por alistamento tardio
+                                int ano_nasc = PessoaService.extractYearFromDate(dn);
+                                List<Integer>anosMultas = EleitorService.pegaAnosMultas(ano_nasc);
+
+                                float valor_multa = (float) 3.51 * anosMultas.size();
+
+                                if (valor_multa > 0){
+                                    DecimalFormat df = new DecimalFormat("#.##");
+                                    String multaFormatada = df.format(valor_multa);
+
+                                    eleitor.setAnosSemVotar(anosMultas);
+
+                                    System.out.println("Foi gerada uma multa de R$ "+ multaFormatada + " por alistamento tardio por não ter votado nas eleições de: ");
+                                    System.out.println(anosMultas);
+                                    System.out.println("O título de " + nome + " permanecerá INATIVO e será ativado automaticamente após a quitação da multa."); 
+                                    eleitor.setSituacao(false);
+                                    eleitor.setMultas(valor_multa);
+                                }
+
                             }
 
-                        }
+                         }
 
                     } //fecha o else do CPF       
                 
@@ -267,7 +306,7 @@ public class MainView implements View {
                 }
                 
             }
-            System.out.println("Deseja buscar algum eleitor peo ID?  (1)Sim; (2)Não");
+            System.out.println("Deseja buscar algum eleitor pelo ID?  (1)Sim; (2)Não");
             String input = scanner.nextLine();
             try {
                 int buscar = InvalidNumberException.parseNumber(input);
@@ -279,9 +318,17 @@ public class MainView implements View {
             }                   
         }
     }
+    
+    private void listarEleitoresParaAtualizarRemover() {
+        List<Eleitor> eleitores = eleitorService.listarTodosEleitores();
+        if (eleitores.isEmpty()) {
+            System.out.println("Nenhum eleitor cadastrado.");
+            startView();
+        } 
+    }
 
     private void atualizarEleitor() {
-        listarTodosEleitores();
+        listarEleitoresParaAtualizarRemover();
         System.out.print("Digite o ID do Eleitor que deseja atualizar: ");
         int id = scanner.nextInt();
         scanner.nextLine(); // consumir nova linha
@@ -349,6 +396,7 @@ public class MainView implements View {
     }
 
     private void removerEleitor() {
+        listarEleitoresParaAtualizarRemover();
         System.out.println("A remoção de um eleitor deve ser feita pelo ID, escolha uma opção:");
         System.out.println("Digite (1) se vc sabe o ID do eleitor que deseja remover");
         System.out.println("Digite (2) se vc sabe o CPF do eleitor que deseja remover. Anote o ID do eleitora que será exibido na tela.");
@@ -487,6 +535,10 @@ public class MainView implements View {
                         "\nTítulo Eleitoral: " + eleitor.getTituloEleitoral());
                         String condicao = (eleitor.isSituacao()) ? "Situação: Quite" : "Situação: INATIVO";
                         System.out.println(condicao);
+                        if (!eleitor.isSituacao()){
+                            System.out.println("Ausência de votação nas eleições de:");
+                            System.out.println(eleitor.getAnosSemVotar());
+                        }
             }
         }
     }
@@ -498,6 +550,96 @@ public class MainView implements View {
         System.out.println("Zona Eleitoral: " + eleitor.getZonaEleitoral());
         System.out.println("Seção: " + eleitor.getSecaoEleitoral());
         String condicao = (eleitor.isSituacao()) ? "Situação: Quite" : "Situação: INATIVO";
+        if (!eleitor.isSituacao()){
+            System.out.println("Ausência de votação nas eleições de:");
+            System.out.println(eleitor.getAnosSemVotar());
+        }
         
     }
+    
+    private void iniciarEleicao() {
+        int anoAtual = LocalDate.now().getYear();
+        float multa = 3.51f;
+        List<Eleitor> eleitores = eleitorService.listarTodosEleitores();
+        if (eleitores.isEmpty()) {
+            System.out.println("Nenhum eleitor cadastrado.");
+            startView();
+        } else {
+            for (Eleitor eleitor : eleitores) {
+                eleitor.setSituacao(false);
+                eleitor.adicionarAnosNaoVotados(anoAtual);
+                eleitor.setMultas(eleitor.getMultas() + multa);
+                        
+                
+            }
+            System.out.println("Digite o número do Título do próximo eleitor a votar:");
+            String titulo_votar = scanner.nextLine();
+            StringBuilder sb = new StringBuilder(titulo_votar);
+            sb.insert(4, " ");
+            sb.insert(9, " ");
+            
+            String titulo_formatado = sb.toString();
+            
+            for (Eleitor eleitor : eleitores) {
+                if (eleitor.getTituloEleitoral().equals(titulo_formatado)){
+                    if (eleitor.getAnosSemVotar().size() == 1){
+                        eleitor.setSituacao(true);
+                        eleitor.limparAnosSemVotar();
+                        System.out.println(eleitor.getPessoa().getNome() + " votou com sucesso.");
+                        System.out.println("Digite (1) para o próximo eleitor ou (2) para encerrar a eleição.");
+                        String input = scanner.nextLine();
+                        try {
+                                int opcao = InvalidNumberException.parseNumber(input);
+                                if (opcao == 1){
+                                        iniciarEleicao();
+                                } else if (opcao == 2){
+                                    System.out.println("Eleição "+ anoAtual + " finalizada");
+                                    startView();                    
+                                }
+                        } catch (InvalidNumberException e) {
+                               System.err.println(e.getMessage());
+                        } 
+                    } else {
+                        System.out.println("O eleitor " + eleitor.getPessoa().getNome() + " não pode votar pois está INATIVO.");
+                                                System.out.println("Digite (1) para o próximo eleitor ou (2) para encerrar a eleição.");
+                        String input = scanner.nextLine();
+                        try {
+                                int opcao = InvalidNumberException.parseNumber(input);
+                                if (opcao == 1){
+                                        iniciarEleicao();
+                                } else if (opcao == 2){
+                                    System.out.println("Eleição "+ anoAtual + " finalizada");
+                                    startView();                    
+                                }
+                        } catch (InvalidNumberException e) {
+                               System.err.println(e.getMessage());
+                        } 
+                    }
+                    
+                    
+                } else {
+                        System.out.println("Eleitor não encontrado no sistema.");
+                        System.out.println("Digite (1) para o próximo eleitor ou (2) para encerrar a eleição.");
+                        String input = scanner.nextLine();
+                        try {
+                                int opcao = InvalidNumberException.parseNumber(input);
+                                if (opcao == 1){
+                                        iniciarEleicao();
+                                } else if (opcao == 2){
+                                    System.out.println("Eleição "+ anoAtual + " finalizada");
+                                    startView();                    
+                                }
+                        } catch (InvalidNumberException e) {
+                               System.err.println(e.getMessage());
+                        } 
+                }              
+            }
+            
+                  
+        }
+    }
+    
+
+    
+
 }

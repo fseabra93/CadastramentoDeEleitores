@@ -4,6 +4,8 @@
  */
 package Entity;
 
+import java.util.List;
+
 /**
  *
  * @author flaviorgs
@@ -15,8 +17,9 @@ public class Eleitor extends Entity {
     private String tituloEleitoral;
     private float multas;
     private boolean situacao;
+    private List<Integer>anosSemVotar;
 
-    // Getters e setters
+
     public Pessoa getPessoa() {
         return pessoa;
     }
@@ -63,6 +66,24 @@ public class Eleitor extends Entity {
 
     public void setSituacao(boolean situacao) {
         this.situacao = situacao;
+    }
+    
+    public List<Integer> getAnosSemVotar() {
+        return this.anosSemVotar;
+    }
+
+    // Setter para anosSemVotar
+    public void setAnosSemVotar(List<Integer> anosSemVotar) {
+        this.anosSemVotar = anosSemVotar;
+    }
+    
+    // Método para limpar a lista de anosSemVotar
+    public void limparAnosSemVotar() {
+        this.anosSemVotar.clear();
+    }
+    
+    public void adicionarAnosNaoVotados(int ano) {
+        this.anosSemVotar.add(ano);
     }
     
     

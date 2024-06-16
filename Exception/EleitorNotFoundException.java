@@ -12,4 +12,7 @@ public class EleitorNotFoundException extends RuntimeException{
     public EleitorNotFoundException(String message) {
         super(message);
     }
+    
+    
+
 }

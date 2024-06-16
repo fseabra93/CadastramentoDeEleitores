@@ -4,6 +4,8 @@
  */
 package Entity;
 
+import java.util.List;
+
 /**
  *
  * @author flaviorgs
@@ -14,6 +16,7 @@ public class Pessoa extends Endereco{
     private String cpf;
     private String dataNascimento;
     public Endereco endereco;
+
 
     public Endereco getEndereco() {
         return endereco;
@@ -55,6 +58,5 @@ public class Pessoa extends Endereco{
     public void setDataNascimento(String dataNascimento) {
         this.dataNascimento = dataNascimento;
     }
-
-    
+        
 }
