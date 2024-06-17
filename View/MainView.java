@@ -273,18 +273,7 @@ public class MainView implements View {
                     imprimeEleitor(eleitor);
 
             if (eleitor.isSituacao() == false){
-                System.out.println("O eleitor encontra-se INATIVO devido a existência de uma multa no valor de R$" + eleitor.getMultas());
-                System.out.println("A situação mudará para ATIVO após a quitação da multa.");
-                System.out.println("Deseja quitar a multa agora? (1)Sim; (2)Não");
-                String input = scanner.nextLine();
-                try {
-                    int quitar = InvalidNumberException.parseNumber(input);
-                    if (quitar == 1){
-                        EleitorService.quitarMulta(eleitor);
-                    }
-                } catch (InvalidNumberException e) {
-                    System.err.println(e.getMessage());
-                }             
+                quitarMulta(eleitor);
             }
         } else {
             System.out.println("Eleitor não encontrado.");
@@ -323,8 +312,19 @@ public class MainView implements View {
         List<Eleitor> eleitores = eleitorService.listarTodosEleitores();
         if (eleitores.isEmpty()) {
             System.out.println("Nenhum eleitor cadastrado.");
-            startView();
-        } 
+        } else {
+            for (Eleitor eleitor : eleitores) {
+                System.out.print("ID: " + eleitor.getId() + ", Nome: " + eleitor.getPessoa().getNome());
+                if (eleitor.isSituacao() == true){
+                    System.out.println(", Situação: Quite");
+                } else {
+                    System.out.println(", Situação: INATIVO");
+                    
+                }
+                
+            }
+                
+        }
     }
 
     private void atualizarEleitor() {
@@ -472,6 +472,10 @@ public class MainView implements View {
             List<Eleitor> eleitoresPorNome = eleitorService.filtrarEleitores(
                     eleitor -> eleitor.getTituloEleitoral().equalsIgnoreCase(titulo_formatado));
                 mostrarEleitores(eleitoresPorNome);
+                
+            if(eleitoresPorNome.get(0).getMultas() > 0){
+                quitarMulta(eleitoresPorNome.get(0));
+            }
             
     }
     
@@ -494,6 +498,10 @@ public class MainView implements View {
             List<Eleitor> eleitoresPorNome = eleitorService.filtrarEleitores(
                     eleitor -> eleitor.getPessoa().getCpf().equalsIgnoreCase(cpf_reconstruido));
                 mostrarEleitores(eleitoresPorNome);
+                
+            if(eleitoresPorNome.get(0).getMultas() > 0){
+                quitarMulta(eleitoresPorNome.get(0));
+            }
             
     }
 
@@ -538,6 +546,7 @@ public class MainView implements View {
                         if (!eleitor.isSituacao()){
                             System.out.println("Ausência de votação nas eleições de:");
                             System.out.println(eleitor.getAnosSemVotar());
+                            
                         }
             }
         }
@@ -550,6 +559,7 @@ public class MainView implements View {
         System.out.println("Zona Eleitoral: " + eleitor.getZonaEleitoral());
         System.out.println("Seção: " + eleitor.getSecaoEleitoral());
         String condicao = (eleitor.isSituacao()) ? "Situação: Quite" : "Situação: INATIVO";
+        System.out.println(condicao);
         if (!eleitor.isSituacao()){
             System.out.println("Ausência de votação nas eleições de:");
             System.out.println(eleitor.getAnosSemVotar());
@@ -637,6 +647,21 @@ public class MainView implements View {
             
                   
         }
+    }
+    
+    public void quitarMulta(Eleitor eleitor){
+        System.out.println("O eleitor encontra-se INATIVO devido a existência de uma multa no valor de R$" + eleitor.getMultas());
+        System.out.println("A situação mudará para ATIVO após a quitação da multa.");
+        System.out.println("Deseja quitar a multa agora? (1)Sim; (2)Não");
+        String input = scanner.nextLine();
+        try {
+            int quitar = InvalidNumberException.parseNumber(input);
+            if (quitar == 1){
+                EleitorService.quitarMulta(eleitor);
+               }
+            } catch (InvalidNumberException e) {
+               System.err.println(e.getMessage());
+            }   
     }
     
 
